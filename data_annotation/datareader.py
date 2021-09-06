@@ -146,10 +146,10 @@ def process_true_boxes(box_data):
 
 
 def generate():
-    n = len(train)
+    #n = len(train)
 
     i = 0
-    while i<16:
+    while True:
         image_data = []
         box_data = []
         for b in range(cfg.batch_size):
@@ -164,9 +164,8 @@ def generate():
 
         yield image_data, box_data
 
-
+train,valid = read_and_split()
 if __name__ == '__main__':
-    train,valid = read_and_split()
 
     # image, box = get_data(check)
     # # plt.imshow(image)
