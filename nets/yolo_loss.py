@@ -6,7 +6,7 @@ import tensorflow as tf
 from data_annotation.datareader import *
 
 
-# num_classes = 20
+
 
 def box_iou(pred_box, true_box):
     """
