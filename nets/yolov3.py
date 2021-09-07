@@ -8,6 +8,8 @@ from tensorflow.keras.layers import LeakyReLU
 from tensorflow.keras.models import Model
 import numpy as np
 import cv2
+import config.config_param as cfg
+from tensorflow.keras import layers
 import matplotlib.pyplot as plt
 
 def compose(*funcs):
@@ -78,6 +80,8 @@ def make_last_layers(x, num_filters, out_filters):
     return x, y
 
 
+
+
 # ---------------------------------------------------#
 #   特征层->最后的输出
 # ---------------------------------------------------#
@@ -108,6 +112,20 @@ def yolo_body(inputs, num_anchors, num_classes):
     # print(y1.shape)
     # print(y2.shape)
     # print(y3.shape)
+    def yolo_feat_reshape(feat):
+        """
+        处理一下y_pred的数据，reshape，从b, 13, 13, 75 -> b, 13, 13, 3, 25
+        :param feat:
+        :return:
+        """
+        grid_size = tf.shape(feat)[1]
+        reshape_feat = tf.reshape(feat, [-1, grid_size, grid_size, cfg.num_bbox, cfg.num_classes + 5])
+
+        return reshape_feat
+
+    y1 = layers.Lambda(lambda x: yolo_feat_reshape(x), name='feat52')(y1)
+    y2 = layers.Lambda(lambda x: yolo_feat_reshape(x), name='feat26')(y2)
+    y3 = layers.Lambda(lambda x: yolo_feat_reshape(x), name='feat13')(y3)
     return Model(inputs, [y1, y2, y3])
 
 
@@ -118,7 +136,7 @@ def check():
     test_img = cv2.imread(test_img)
     dim = (416, 416)
     resized = cv2.resize(test_img, dim, interpolation=cv2.INTER_AREA)
-    print(resized.shape)
+    #print(resized.shape)
     resized = resized[np.newaxis, ...]
     test_pred = model.predict(resized)
     return test_pred
