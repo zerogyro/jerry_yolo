@@ -64,10 +64,12 @@ def process_true_boxes(box_data):
     [(8, 13, 13, 3, 25),
     (8, 26, 26, 3, 25),
     (8, 52, 52, 3, 25)]
+    missing: encapuslation for adjustment of net structure of detection
     """
 
     input_shape = cfg.input_shape
     true_boxes = np.array(box_data, dtype='float32')
+    #print(true_boxes)
     x_shape = np.array(input_shape, dtype='int32')
 
     # get center point and width and height
@@ -78,11 +80,10 @@ def process_true_boxes(box_data):
     # true box shape (8,100,5)
     true_boxes[..., 0:2] = boxes_xy / input_shape
     true_boxes[..., 2:4] = boxes_wh / input_shape
-
+    #print(true_boxes)
 
     # Attention!!!!!!!
     # need to change when change structure of yolo body
-
     # 13,13 26,26 52,52
     grid_shape = [x_shape // [32, 16, 8][i] for i in range(3)]
 
@@ -138,9 +139,7 @@ def process_true_boxes(box_data):
                     y_true[n][b, j, i, k, 0:4] = true_boxes[b, key, 0:4]
                     y_true[n][b, j, i, k, 4] = 1  # confidence 1
                     y_true[n][b, j, i, k, 5 + c] = 1  # one-hot encode
-    # print(y_true[0].shape)
-    # print(y_true[1].shape)
-    # print(y_true[2].shape)
+
     return y_true
 
 
