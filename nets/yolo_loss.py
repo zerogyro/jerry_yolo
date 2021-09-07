@@ -10,13 +10,11 @@ from data_annotation.datareader import *
 
 def box_iou(pred_box, true_box):
     """
-    用于计算每个预测框与真实框的iou
-    :param pred_box: 预测框的信息 -- tensor, shape=(i1,...,iN, 4), xywh
-    :param true_box: 实际框的信息 -- tensor, shape=(j, 4), xywh
+    calculate iou between pred_box and true_box
     :return: iou: tensor, shape=(i1, ..., iN, j)
     """
     # 13,13,3,1,4
-    # 计算左上角的坐标和右下角的坐标
+
     pred_box = tf.expand_dims(pred_box, -2)
     pred_box_xy = pred_box[..., 0:2]
     pred_box_wh = pred_box[..., 2:4]
@@ -25,7 +23,7 @@ def box_iou(pred_box, true_box):
     pred_box_rightdown = pred_box_xy + pred_box_wh_half
 
     # 1,n,4
-    # 计算左上角和右下角的坐标
+
     true_box = tf.expand_dims(true_box, 0)
     true_box_xy = true_box[..., 0:2]
     true_box_wh = true_box[..., 2:4]
@@ -33,17 +31,17 @@ def box_iou(pred_box, true_box):
     true_box_leftup = true_box_xy - true_box_wh_half
     true_box_rightdown = true_box_xy + true_box_wh_half
 
-    # 计算重合面积
+
     intersect_leftup = tf.maximum(pred_box_leftup, true_box_leftup)
     intersect_rightdown = tf.minimum(pred_box_rightdown, true_box_rightdown)
-    # 用右下角坐标 - 左上角坐标，如果大于0就是有重叠的，如果是0就没有重叠
+
     intersect_wh = tf.maximum(intersect_rightdown - intersect_leftup, 0.)
     intersect_area = intersect_wh[..., 0] * intersect_wh[..., 1]
 
-    # 分别算出 预测框和实际框的面积
+
     pred_box_area = pred_box_wh[..., 0] * pred_box_wh[..., 1]
     true_box_area = true_box_wh[..., 0] * true_box_wh[..., 1]
-    # 两个总面积 - 重叠部分面积 = 并集的面积
+
     iou = intersect_area / (pred_box_area + true_box_area - intersect_area)
 
     return iou
@@ -138,23 +136,4 @@ def YoloLoss(anchors):
 
     return compute_loss
 
-# if __name__ == '__main__':
-#     # train, valid = read_and_split()
-#
-#     train_data = generate()
-#     y_true = list(train_data)[0][1][0]
-#     print(y_true.shape)
-#
-#     a = test_pred
-#
-#     # (3,1,13,13,75)
-#     # (3,1,26,26,75)
-#     # (3,1,52,52,75)
-#     # print(K.shape(a[0])[1:3]*32)
-#     # print(K.dtype(a[0]))
-#     input_shape = (416, 416)
-#     input_shape = tf.constant(input_shape)
-#     grid, raw_pred, pred_xy, pred_wh = yolo_head(a[0],
-#                                                  cfg.anchors[cfg.anchor_masks[0]], num_classes, input_shape,
-#                                                  calc_loss=True)
-#     print(raw_pred.shape)
+
