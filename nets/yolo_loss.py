@@ -1,7 +1,7 @@
 import config.config_param as cfg
 import numpy as np
 from nets.yolov3 import test_pred
-from nets.yolo_head import yolo_head_new
+from nets.yolo_head import yolo_head
 import tensorflow as tf
 from data_annotation.datareader import *
 
@@ -60,7 +60,7 @@ def YoloLoss(anchors):
         # print(grid_shapes)
 
         # y_pred: (batch_size, grid, grid, anchors * (x, y, w, h, obj, ...cls))
-        pred_xywh, grid = yolo_head_new(y_pred, anchors, calc_loss=True)
+        pred_xywh, grid = yolo_head(y_pred, anchors, calc_loss=True)
 
         # get pred xy: x_offset, y_offset
         pred_xy = y_pred[..., 0:2]

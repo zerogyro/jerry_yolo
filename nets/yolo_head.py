@@ -6,7 +6,7 @@ anchors = cfg.anchors
 anchor_masks = cfg.anchor_masks
 
 
-def yolo_head_new(y_pred, anchors, calc_loss=False):
+def yolo_head(y_pred, anchors, calc_loss=False):
     """
     yolo_head split raw prediction from yolo_body into x,y,w,h and bounding box then process with normalization
     and create grid of three sizes
