@@ -10,28 +10,25 @@ from tensorflow.keras.optimizers.schedules import PolynomialDecay
 
 
 def main():
-    # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-    # gpus = tf.config.experimental.list_physical_devices("GPU")
-    # if gpus:
-    #     for gpu in gpus:
-    #         tf.config.experimental.set_memory_growth(gpu, True)
 
-    # 读取数据
+
+    # read data
     #reader = datareader(cfg.data_path, cfg.input_shape, cfg.batch_size)
-    train_data = datareader.generate()
+    train_data = datareader.generate('train')
     #print(len(list(train_data)))
-    validation_data = datareader.generate()
-    # train_steps = len(list(train_data)) // cfg.batch_size
-    # validation_steps = len(list(validation_data)) // cfg.batch_size
+    validation_data = datareader.generate('valid')
+    train_steps = len(datareader.train_lines) // cfg.batch_size
+    validation_steps = len(datareader.valid_lines) // cfg.batch_size
+    print(train_steps,validation_steps)
 
-    # print('Train on {} samples, val on {} samples, with batch size {}.'.format(len(list(train_data)),
-    #                                                                            len(list(validation_data)),
-    #                                                                            cfg.batch_size))
+    print('Train on {} samples, val on {} samples, with batch size {}.'.format(len(datareader.train_lines),
+                                                                               len(datareader.valid_lines),
+                                                                               cfg.batch_size))
 
     optimizer = optimizers.Adam(learning_rate=cfg.learn_rating)
     yolo_loss = [YoloLoss(cfg.anchors[mask]) for mask in cfg.anchor_masks]
 
-    train_by_fit(optimizer, yolo_loss, train_data, 20, validation_data, 20)
+    train_by_fit(optimizer, yolo_loss, train_data, train_steps, validation_data, validation_steps)
 
 
 def train_by_fit(optimizer, loss, train_data, train_steps, validation_data, validation_steps):
