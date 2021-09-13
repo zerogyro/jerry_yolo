@@ -15,9 +15,10 @@ def read_and_split():
     with open(cfg.data_path, "r") as f:
         files = f.readlines()
     split = int(cfg.valid_rate * len(files))
+    raw = files
     train = files[split:]
     valid = files[:split]
-    return train, valid
+    return raw, train, valid
 
 
 def get_data(annotation_line):
@@ -69,7 +70,7 @@ def process_true_boxes(box_data):
 
     input_shape = cfg.input_shape
     true_boxes = np.array(box_data, dtype='float32')
-    #print(true_boxes)
+    # print(true_boxes)
     x_shape = np.array(input_shape, dtype='int32')
 
     # get center point and width and height
@@ -80,7 +81,7 @@ def process_true_boxes(box_data):
     # true box shape (8,100,5)
     true_boxes[..., 0:2] = boxes_xy / input_shape
     true_boxes[..., 2:4] = boxes_wh / input_shape
-    #print(true_boxes)
+    # print(true_boxes)
 
     # Attention!!!!!!!
     # need to change when change structure of yolo body
@@ -90,7 +91,7 @@ def process_true_boxes(box_data):
     # y_true shape [(8, 13, 13, 3, 25), (8, 26, 26, 3, 25), (8, 52, 52, 3, 25)]
     y_true = [np.zeros((cfg.batch_size, grid_shape[i][0], grid_shape[i][1], 3, 5 + 20), dtype='float32') for i in
               range(3)]
-    #check shape
+    # check shape
     # a = [(y_true[i].shape) for i in range(3)]
     # print(a)
 
@@ -101,29 +102,27 @@ def process_true_boxes(box_data):
     # valid mask stores boolean from box_data i.e whether contains box
     valid_mask = box_data[..., 0] > 0
 
-
     for b in range(cfg.batch_size):
         # get w h of every box in batch_size
-        wh = boxes_wh[b,valid_mask[b]]
+        wh = boxes_wh[b, valid_mask[b]]
         # (_,1,2)
-        wh = np.expand_dims(wh,-2)
+        wh = np.expand_dims(wh, -2)
 
-        box_rightdown = wh/2.
+        box_rightdown = wh / 2.
         box_leftup = -box_rightdown
 
-        intersect_leftup = np.maximum(box_leftup,anchors_leftup)
-        intersect_rightdown = np.minimum(box_rightdown,anchors_rightdown)
-        intersect_wh = np.maximum(intersect_rightdown-intersect_leftup,0.)
-        intersect_area = intersect_wh[...,0] * intersect_wh[...,1]
+        intersect_leftup = np.maximum(box_leftup, anchors_leftup)
+        intersect_rightdown = np.minimum(box_rightdown, anchors_rightdown)
+        intersect_wh = np.maximum(intersect_rightdown - intersect_leftup, 0.)
+        intersect_area = intersect_wh[..., 0] * intersect_wh[..., 1]
 
-        box_area = wh[...,0]*wh[...,1]
-        anchor_area = cfg.anchors[...,0] * cfg.anchors[...,1]
-        #calculate max iou
-        iou = intersect_area/(box_area+anchor_area-intersect_area)
+        box_area = wh[..., 0] * wh[..., 1]
+        anchor_area = cfg.anchors[..., 0] * cfg.anchors[..., 1]
+        # calculate max iou
+        iou = intersect_area / (box_area + anchor_area - intersect_area)
 
-        #best_anchor: bounding box most closed anchor box of each image
-        best_anchor = np.argmax(iou,axis = -1)
-
+        # best_anchor: bounding box most closed anchor box of each image
+        best_anchor = np.argmax(iou, axis=-1)
 
         for key, value in enumerate(best_anchor):
             # for each bounding box, check 3 layer of grid and add to y_true
@@ -134,7 +133,7 @@ def process_true_boxes(box_data):
                     j = np.floor(true_boxes[b, key, 1] * grid_shape[n][0]).astype('int32')
 
                     k = cfg.anchor_masks[n].index(value)
-                    c = true_boxes[b,key,4].astype('int32')
+                    c = true_boxes[b, key, 4].astype('int32')
 
                     y_true[n][b, j, i, k, 0:4] = true_boxes[b, key, 0:4]
                     y_true[n][b, j, i, k, 4] = 1  # confidence 1
@@ -143,41 +142,66 @@ def process_true_boxes(box_data):
     return y_true
 
 
-
-def generate():
-    #n = len(train)
+def generate(mode):
+    if mode == 'train':
+        n = len(train_lines)
+    else:
+        n = len(valid_lines)
 
     i = 0
     while True:
         image_data = []
         box_data = []
         for b in range(cfg.batch_size):
-
-            image, bbox = get_data(train[i])
+            if mode == 'train':
+                #print(i)
+                image, bbox = get_data(train_lines[i])
+            else:
+                image, bbox = get_data(valid_lines[i])
             image_data.append(image)
             box_data.append(bbox)
-            i +=1
+            i = (i + 1) % n
         image_data = np.array(image_data)
         box_data = np.array(box_data)
         box_data = process_true_boxes(box_data)
 
         yield image_data, box_data
 
-train,valid = read_and_split()
-if __name__ == '__main__':
 
+raw, train_lines, valid_lines = read_and_split()
+def debug(flag_p):
+    if flag_p:
+        #c = train_lines[15407]
+        a = raw[7362 + 1712]
+        print(7362 + 1712)
+        print(a)
+    else:
+
+        i = 0
+        while True:
+            print(i)
+            image, bbox = get_data(train_lines[i])
+            i+=1
+if __name__ == '__main__':
     # image, box = get_data(check)
     # # plt.imshow(image)
     # # plt.show()
     #
-    train_data = generate()
-    train_data = list(train_data)
-    print(len(train_data))
-    print((train_data[0])[0].shape)
-    print(train_data[0][1][0].shape)
-    print(train_data[0][1][1].shape)
-    print(train_data[0][1][2].shape)
+    #debug(flag_p=True)
+    debug(flag_p=False)
 
-    # y_true = process_true_boxes(a)
-    # print(y_true)
-
+    # a = len(train_lines)
+    # b = len(valid_lines)
+    # print(a,b)
+    # print(raw[1835+1712])
+    # print(1835+1712)
+    # train_data = generate()
+    # train_data = list(train_data)
+    # print(len(train_data))
+    # print((train_data[0])[0].shape)
+    # print(train_data[0][1][0].shape)
+    # print(train_data[0][1][1].shape)
+    # print(train_data[0][1][2].shape)
+    #
+    # # y_true = process_true_boxes(a)
+    # # print(y_true)
