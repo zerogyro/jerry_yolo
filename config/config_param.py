@@ -2,7 +2,7 @@ import numpy as np
 
 # input data
 valid_rate = 0.1
-data_path = '/home/jerry/PycharmProjects/yolodemo/2012_train.txt'
+data_path = '/home/jerry/PycharmProjects/jerry_yolo/2012_train.txt'
 input_shape = (416, 416)
 
 num_classes = 20
@@ -30,4 +30,9 @@ epochs = 50
 learn_rating = 1e-5
 # iou忽略阈值
 ignore_thresh = 0.5
-iou_threshold = 0.3
+iou_threshold = 0.1
+
+class_names = ['aeroplane', 'bicycle', 'bird', 'boat', 'bottle',
+               'bus', 'car', 'cat', 'chair', 'cow',
+               'diningtable', 'dog', 'horse', 'motorbike', 'person',
+               'pottedplant', 'sheep', 'sofa', 'train', 'tvmonitor']
