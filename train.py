@@ -7,7 +7,7 @@ from nets.yolov3 import yolo_body
 import os
 from tensorflow.keras import optimizers, callbacks, metrics
 from tensorflow.keras.optimizers.schedules import PolynomialDecay
-
+weight_path = '/home/jerry/PycharmProjects/jerry_yolo/log/yolov3_118.8456.h5'
 
 def main():
 
@@ -40,6 +40,7 @@ def train_by_fit(optimizer, loss, train_data, train_steps, validation_data, vali
 
     input = tf.keras.layers.Input(shape=(416, 416, 3))
     model = yolo_body(input, 3, 20)
+    model.load_weights(weight_path)
     #model = yolo_body()
     model.compile(optimizer=optimizer, loss=loss)
 
