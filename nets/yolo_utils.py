@@ -43,6 +43,10 @@ def parse_yolov3_output(yolo_outputs,image_shape):
 
         # print(class_box.shape)
         # print(class_box_score.shape)
+        nms_index = tf.image.non_max_suppression(class_box, class_box_score, max_boxes_tensor,
+                                                 iou_threshold=cfg.iou_threshold)
+        class_box = tf.gather(class_box, nms_index)
+        class_box_score = tf.gather(class_box_score, nms_index)
         classes = tf.ones_like(class_box_score,'int32')*c
 
         boxes_.append(class_box)

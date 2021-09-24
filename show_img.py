@@ -1,6 +1,7 @@
 from PIL import Image, ImageFont, ImageDraw
 import config.config_param as cfg
 import numpy as np
+import colorsys
 
 img_path = "/home/jerry/PycharmProjects/yolov3demo/VOC2012/JPEGImages/2011_005517.jpg"
 real_bbox = [[181, 186, 271, 404],
@@ -46,6 +47,12 @@ def draw_pred(image,pred_bbox,pred_classes):
 
 
 if __name__ == '__main__':
-    image = Image.open(img_path)
-    draw_pred(image)
-    image.show()
+    # image = Image.open(img_path)
+    # draw_pred(image)
+    # image.show()
+    hsv_tuples = [(x / 20, 1., 1.)
+                  for x in range(20)]
+    print(hsv_tuples)
+    colors = list(map(lambda x: colorsys.hsv_to_rgb(*x), hsv_tuples))
+    colors = list(map(lambda x: (int(x[0] * 255), int(x[1] * 255), int(x[2] * 255)), colors))
+    print(colors)

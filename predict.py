@@ -11,7 +11,7 @@ from PIL import Image, ImageFont, ImageDraw
 import colorsys
 
 model_path = '/home/jerry/PycharmProjects/jerry_yolo/log/yolov3_32.3341.h5'
-img_path = "/home/jerry/PycharmProjects/yolov3demo/VOC2012/JPEGImages/2011_005517.jpg"
+img_path = "/home/jerry/PycharmProjects/yolov3demo/VOC2012/JPEGImages/2011_000146.jpg"
 
 
 # @staticmethod
@@ -39,18 +39,31 @@ def process_image(image_path):
 
 
 
-def draw_pred(image,pred_bbox,pred_classes):
+def draw_pred(image,pred_bbox,pred_classes,pred_scores):
     font = ImageFont.load_default()
     # print(image.size)
     thickness = (image.size[0] + image.size[1]) // 300
+    hsv_tuples = [(x / 20, 1., 1.)
+                  for x in range(20)]
+    #print(hsv_tuples)
+    colors = list(map(lambda x: colorsys.hsv_to_rgb(*x), hsv_tuples))
+    colors = list(map(lambda x: (int(x[0] * 255), int(x[1] * 255), int(x[2] * 255)), colors))
 
     for i, c in enumerate(pred_classes):
         classes = cfg.class_names[c]
         box = pred_bbox[i]
+        score = pred_scores[i]
         top, left, bottom, right = box
         draw = ImageDraw.Draw(image)
-        draw.rectangle([left, top, right, bottom], width=thickness)
-        # draw.rectangle([tuple(text_origin), tuple(text_origin + label_size)])
+        draw.rectangle([left, top, right, bottom], width=thickness,outline = colors[c]) #outline = (0,0,0)
+
+        label = '{} {:.4f}'.format(classes, score)
+        label_size = draw.textsize(label, font)
+        #text_origin = np.array([left, top - label_size[1]])
+        text_origin = np.array([left, top + 1])
+        draw.rectangle([tuple(text_origin), tuple(text_origin + label_size)])
+        text = '{}'.format(label)
+        draw.text(text_origin, text, fill=(0, 0, 0), font=font)
 
 
 if __name__ == '__main__':
@@ -68,7 +81,7 @@ if __name__ == '__main__':
     print(classes)
     #image = detect_image(image)
     #image.show()
-    draw_pred(image,boxes,classes)
+    draw_pred(image,boxes,classes,scores)
     image.show()
 
     # print('Found {} boxes for {}'.format(len(boxes), 'img'))
